@@ -2,7 +2,7 @@ script "DataView Database Cursor Controller Behavior" with behavior "DataView Be
 local sCursorId
 local sCursorColumnsA
 local sColumnCount
-local sRecordCount = 0
+local sRecordCount
 local sCurrentRow
 
 
@@ -78,48 +78,61 @@ end backspaceKey
 
 
 /**
-Summary: Returns the `id` property of the selected row.
+Summary: Returns the `id` property of the selected row(s).
 
 Description:
-This property only returns a value if the array created in `DataForRow`
-has an `id` key.
+This property only returns a value if the cursor row has an `id` column.
 
 Returns: Value
 */
-getProp dvSelectedId
-  local tRow
+getProp dvHilitedIds
+  local tRow, tRows, tIds
 
-  put the dvHilitedRow of me into tRow
+  put the dvHilitedRow of me into tRows
 
-  if tRow > 0 then
-    _moveToRecord tRow
-    return revDatabaseColumnNamed(sCursorId, "id")
+  if tRows is not empty then
+    repeat for each item tRow in tRows
+      _moveToRecord tRow
+      put revDatabaseColumnNamed(sCursorId, "id") & "," after tIds
+    end repeat
+    delete the last char of tIds
+    return tIds
   else
     return empty
   end if
-end dvSelectedId
+end dvHilitedIds
+
+
+getProp dvHilitedId
+  return the dvHilitedIds of me
+end dvHilitedId
 
 
 /**
-Summary: Sets the selected row based on the `id` property of a row.
+Summary: Sets the selected row based on the `id` property of a row(s).
 
 Description:
-This property can only be set if the array created in `DataForRow`
-has an `id` key.
+This property can only be set if the database cursor has an `id` column
+that was selected as part of the cursor.
 
 Returns: empty
 */
-setProp dvSelectedId pId
-  local tRow
+setProp dvHilitedIds pIds
+  local tRows
 
-  put _RowOfId(pId) into tRow
+  put _RowOfId(pIds) into tRows
 
-  if tRow > 0 then
-    set the dvHilitedRow of me to tRow
+  if tRows is not empty then
+    set the dvHilitedRow of me to tRows
   end if
 
   return empty
-end dvSelectedId
+end dvHilitedIds
+
+
+setProp dvHilitedId pIds
+  set the dvHilitedIds of me to pIds
+end dvHilitedId
 
 
 /**
@@ -252,32 +265,74 @@ command RefreshRowOfId pId
 end RefreshRowOfId
 
 
-private function _RowOfId pId
-  local i
+private command _setHilitedIds pIds
+  local tId, tRow, tRows
+
+  repeat for each item tId in pIds
+    put _RowOfId(tId) & "," into tRow
+    if tRow is not empty then
+      put tRow & "," after tRows
+    end if
+  end repeat
+  delete the last char of tRows
+
+  if tRows is not empty then
+    set the dvHilitedRow of me to tRows
+  end if
+
+  return empty
+end _setHilitedIds
+
+
+private function _RowOfId pIds
+  local i, tItemNo, tRows, tResult
+
+  set the wholematches to true
 
   # start on current record and move backwards
   repeat with i = sCurrentRow down to 1
-    if revDatabaseColumnNamed(sCursorId, "id") is pId then
-      put i into sCurrentRow
-      return i
+    put itemOffset(revDatabaseColumnNamed(sCursorId, "id"), pIds) into tItemNo
+    if tItemNo > 0 then
+      put i & "," after tRows
+      delete item tItemNo of pIds
+      if pIds is empty then
+        exit repeat
+      end if
     end if
+
     revMoveToPreviousRecord sCursorId
+    if the result is true then
+      put i into sCurrentRow
+    end if
   end repeat
 
   # Now work our way back up through cursor
-  if sCurrentRow < sRecordCount then
+  if pIds is not empty and sCurrentRow < sRecordCount then
     revMoveToRecord sCursorId, sCurrentRow + 1
+    if the result is "true" then
+      add 1 to sCurrentRow
 
-    repeat with i = sCurrentRow + 1 to sRecordCount
-      if revDatabaseColumnNamed(sCursorId, "id") is pId then
-        put i into sCurrentRow
-        return i
-      end if
-      revMoveToNextRecord sCursorId
-    end repeat
+      repeat with i = sCurrentRow to sRecordCount
+        put itemOffset(revDatabaseColumnNamed(sCursorId, "id"), pIds) into tItemNo
+        if tItemNo > 0 then
+          put i & "," after tRows
+          delete item tItemNo of pIds
+          if pIds is empty then
+            exit repeat
+          end if
+        end if
+
+        revMoveToNextRecord sCursorId
+        if the result is true then
+          put i into sCurrentRow
+        end if
+      end repeat
+    end if
   end if
 
-  return 0
+  delete the last char of tRows
+
+  return tRows
 end _RowOfId
 
 
