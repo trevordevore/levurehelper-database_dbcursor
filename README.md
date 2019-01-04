@@ -2,6 +2,12 @@
 
 The DataView Database Cursor helper uses the data in a database cursor returned by `revQueryDatabase()` to feed a DataView.
 
+## Demo
+
+The DataView Demo application includes an example of using this helper:
+
+https://github.com/trevordevore/dataview_demo
+
 ## Usage
 
 To display data from a cursor in a DataView you will need to do two things:
