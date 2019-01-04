@@ -206,19 +206,34 @@ Summary: Returns the data array of the currently selected row.
 
 Returns: Value
 */
-getProp dvSelectedData
-  local tRow
+getProp dvHilitedData
+  local tRows
 
-  put the dvHilitedRow of me into tRow
+  put the dvHilitedRow of me into tRows
 
-  if tRow > 0 then
-    local tDataA
-    _moveToRecord tRow
-    _convertCurrentRowToArray tDataA
+  if tRows is not empty then
+    local tRowA
+
+    if the number of items of tRows is 1 then
+      _moveToRecord tRows
+      _convertCurrentRowToArray tRowA
+      return tRowA
+    else
+      local tDataA, tRow, i
+
+      repeat for each item tRow in tRows
+        add 1 to i
+        _moveToRecord tRow
+        _convertCurrentRowToArray tRowA
+        put tRowA into tDataA[i]
+      end repeat
+
+      return tDataA
+    end if
   else
     return empty
   end if
-end dvSelectedData
+end dvHilitedData
 
 
 /**
