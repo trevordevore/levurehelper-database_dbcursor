@@ -1,6 +1,8 @@
 # DataView Database Cursor Helper
 
-The DataView Database Cursor helper uses the data in a database cursor returned by `revQueryDatabase()` to feed a DataView.
+The DataView Database Cursor helper uses the data in a database cursor returned by `revQueryDatabase()` to feed a [DataView](https://github.com/trevordevore/levurehelper-dataview).
+
+Note that this helper requires the [DataView helper](https://github.com/trevordevore/levurehelper-dataview).
 
 ## Demo
 
