@@ -323,7 +323,8 @@ private function _RowOfId pIds
 
   # Now work our way back up through cursor
   if pIds is not empty and sCurrentRow < sRecordCount then
-    revMoveToRecord sCursorId, sCurrentRow + 1
+    # revMoveToRecord is 0-based so don't add 1 to sCurrentRow
+    revMoveToRecord sCursorId, sCurrentRow
     if the result is "true" then
       add 1 to sCurrentRow
 
@@ -352,7 +353,8 @@ end _RowOfId
 
 
 private command _moveToRecord pRow
-  revMoveToRecord sCursorId, pRow
+  # revMoveToRecord is 0-based
+  revMoveToRecord sCursorId, pRow-1
   put pRow into sCurrentRow
 end _moveToRecord
 
