@@ -305,57 +305,59 @@ private command _setHilitedIds pIds
 end _setHilitedIds
 
 
-private function _RowOfId pIds
-  local i, tItemNo, tRows, tResult
+/**
+Summary: Returns the row associated with an id.
 
-  set the wholematches to true
+Parameters:
+pId: The id to search on.
+
+Description:
+This function searchds for a row by moving through the open cursor.
+It starts at the current record in the currsor and moves backwards
+down to the first record. If the `id` is not found then it moves forward
+from the original cursor position until it reaches the last record.
+
+If the id is not found then 0 is returned.
+
+Returns: Integer
+*/
+private function _rowOfId pId
+  local i, tRows, tResult
 
   # start on current record and move backwards
   repeat with i = sCurrentRow down to 1
-    put itemOffset(revDatabaseColumnNamed(sCursorId, "id"), pIds) into tItemNo
-    if tItemNo > 0 then
-      put i & "," after tRows
-      delete item tItemNo of pIds
-      if pIds is empty then
-        exit repeat
-      end if
+    if revDatabaseColumnNamed(sCursorId, "id") is pId then
+      return i
     end if
 
     revMoveToPreviousRecord sCursorId
     if the result is true then
-      put i into sCurrentRow
+      put i-1 into sCurrentRow
     end if
   end repeat
 
-  # Now work our way back up through cursor
-  if pIds is not empty and sCurrentRow < sRecordCount then
-    # revMoveToRecord is 0-based so don't add 1 to sCurrentRow
+  # Now work our way forward through the cursor
+  if sCurrentRow < sRecordCount then
+    # Note: revMoveToRecord is 0-based so don't add 1 to sCurrentRow when moving
     revMoveToRecord sCursorId, sCurrentRow
-    if the result is "true" then
+    if the result is true then
       add 1 to sCurrentRow
 
       repeat with i = sCurrentRow to sRecordCount
-        put itemOffset(revDatabaseColumnNamed(sCursorId, "id"), pIds) into tItemNo
-        if tItemNo > 0 then
-          put i & "," after tRows
-          delete item tItemNo of pIds
-          if pIds is empty then
-            exit repeat
-          end if
+        if revDatabaseColumnNamed(sCursorId, "id") is pId then
+          return i
         end if
 
         revMoveToNextRecord sCursorId
         if the result is true then
-          put i into sCurrentRow
+          put i+1 into sCurrentRow
         end if
       end repeat
     end if
   end if
 
-  delete the last char of tRows
-
-  return tRows
-end _RowOfId
+  return 0
+end _rowOfId
 
 
 private command _moveToRecord pRow
