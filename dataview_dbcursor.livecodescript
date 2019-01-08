@@ -165,6 +165,22 @@ end dvRowId
 
 
 /**
+Summary: Returns the row(s) associated with the provided ids.
+
+Parameters:
+pId: The `id` to search on.
+
+Description:
+If the id is not found then 0 is returned.
+
+Returns: Integer
+*/
+getProp dvRowOfId[pId]
+  return _rowOfId(pId)
+end dvRowOfId
+
+
+/**
 Summary: Returns the row data associated with a specific `id`.
 
 Parameters:
