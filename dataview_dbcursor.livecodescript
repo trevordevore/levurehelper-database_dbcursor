@@ -101,6 +101,10 @@ end dvHilitedId
 /**
 Summary: Sets the selected row based on the `id` property of a row(s).
 
+Parameters:
+pForceScroll: Passed along to `dvHilitedRow` in the DataView behavior.
+pIds: The ids to select.
+
 Description:
 This property can only be set if the database cursor has an `id` column
 that was selected as part of the cursor.
@@ -109,7 +113,7 @@ In order to find the rows associated with each the code will loop through
 the database cursor. This may be slow for large data sets so test to make
 sure the speed is acceptable.
 */
-setProp dvHilitedIds pIds
+setProp dvHilitedIds[pForceScroll] pIds
   local tId, tRow, tRows
 
   repeat for each item tId in pIds
@@ -120,12 +124,12 @@ setProp dvHilitedIds pIds
   end repeat
   delete the last char of tRows
 
-  set the dvHilitedRow of me to tRows
+  set the dvHilitedRow[pForceScroll] of me to tRows
 end dvHilitedIds
 
 
-setProp dvHilitedId pIds
-  set the dvHilitedIds of me to pIds
+setProp dvHilitedId[pForceScroll] pIds
+  set the dvHilitedIds[pForceScroll] of me to pIds
 end dvHilitedId
 
 
