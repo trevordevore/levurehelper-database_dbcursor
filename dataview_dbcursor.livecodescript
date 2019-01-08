@@ -72,8 +72,10 @@ Summary: Returns the `id` property of the selected row(s).
 
 Description:
 This property only returns a value if the cursor row has an `id` column.
+If there is no `id` column then an empty value will be returned for each
+selected row.
 
-Returns: Value
+Returns: Comma-delimited list of row numbers.
 */
 getProp dvHilitedIds
   local tRow, tRows, tIds
@@ -86,10 +88,8 @@ getProp dvHilitedIds
       put revDatabaseColumnNamed(sCursorId, "id") & "," after tIds
     end repeat
     delete the last char of tIds
-    return tIds
-  else
-    return empty
   end if
+  return tIds
 end dvHilitedIds
 
 
@@ -105,18 +105,22 @@ Description:
 This property can only be set if the database cursor has an `id` column
 that was selected as part of the cursor.
 
-Returns: empty
+In order to find the rows associated with each the code will loop through
+the database cursor. This may be slow for large data sets so test to make
+sure the speed is acceptable.
 */
 setProp dvHilitedIds pIds
-  local tRows
+  local tId, tRow, tRows
 
-  put _RowOfId(pIds) into tRows
+  repeat for each item tId in pIds
+    put _rowOfId(tId) into tRow
+    if tRow is not empty then
+      put tRow & "," after tRows
+    end if
+  end repeat
+  delete the last char of tRows
 
-  if tRows is not empty then
-    set the dvHilitedRow of me to tRows
-  end if
-
-  return empty
+  set the dvHilitedRow of me to tRows
 end dvHilitedIds
 
 
@@ -152,7 +156,7 @@ Description:
 This property can only be set if the array created in `DataForRow`
 has an `id` key.
 
-Returns: nothing
+Returns: Value
 */
 getProp dvRowId[pRow]
   local tDataA
@@ -195,9 +199,9 @@ Returns: Value
 getProp dvRowOfIdData[pId]
   local tRow
 
-  put _RowOfId(pId) into tRow
+  put _rowOfId(pId) into tRow
 
-  if tRow > 0 then
+  if tRow is not empty then
     local tDataA
     _moveToRecord tRow
     _convertCurrentRowToArray tDataA
@@ -210,34 +214,33 @@ end dvRowOfIdData
 /**
 Summary: Returns the data array of the currently selected row.
 
-Returns: Value
+Description:
+If a single row is selected then the array associated with that row
+will be returned. If multiple rows are selected, then the result will
+be a numerically indexed array of row data.
+
+Returns: Array
 */
 getProp dvHilitedData
-  local tRows
+  local tRows, tRowA
 
   put the dvHilitedRow of me into tRows
 
-  if tRows is not empty then
-    local tRowA
-
-    if the number of items of tRows is 1 then
-      _moveToRecord tRows
-      _convertCurrentRowToArray tRowA
-      return tRowA
-    else
-      local tDataA, tRow, i
-
-      repeat for each item tRow in tRows
-        add 1 to i
-        _moveToRecord tRow
-        _convertCurrentRowToArray tRowA
-        put tRowA into tDataA[i]
-      end repeat
-
-      return tDataA
-    end if
+  if the number of items of tRows is 1 then
+    _moveToRecord tRows
+    _convertCurrentRowToArray tRowA
+    return tRowA
   else
-    return empty
+    local tDataA, tRow, i
+
+    repeat for each item tRow in tRows
+      add 1 to i
+      _moveToRecord tRow
+      _convertCurrentRowToArray tRowA
+      put tRowA into tDataA[i]
+    end repeat
+
+    return tDataA
   end if
 end dvHilitedData
 
@@ -276,9 +279,9 @@ Returns: nothing
 command RefreshRowOfId pId
   local tRow
 
-  put _RowOfId(pId) into tRow
+  put _rowOfId(pId) into tRow
 
-  if tRow > 0 then
+  if tRow is not empty then
     RenderRows tRow
   end if
 
@@ -290,7 +293,7 @@ private command _setHilitedIds pIds
   local tId, tRow, tRows
 
   repeat for each item tId in pIds
-    put _RowOfId(tId) & "," into tRow
+    put _rowOfId(tId) tRow
     if tRow is not empty then
       put tRow & "," after tRows
     end if
