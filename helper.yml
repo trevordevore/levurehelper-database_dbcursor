@@ -1,2 +1,4 @@
+name: DataView Database Cursor Controller
 behaviors:
   - filename: dataview_dbcursor.livecodescript
+dependencies: DataView
