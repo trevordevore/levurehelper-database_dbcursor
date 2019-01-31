@@ -15,7 +15,6 @@ pCursorId: A cursor id as returned by `revQueryDatabase()`.
 Example:
 put revQueryDatabase(tDatabaseId, "SELECT * FROM MyTable") into tCursorId
 set the dvCursor of group "MyDataView" to tCursorId
-dispatch "RenderView" to group "MyDataView"
 
 Returns: nothing
 */
@@ -49,6 +48,16 @@ setProp dvCursor pCursorId
     RenderView
     unlock screen
   end if
+end dvCursor
+
+
+/**
+Summary: Returns the internal cursor id.
+
+Returns: Integer
+*/
+getProp dvCursor
+  return sCursorId
 end dvCursor
 
 
