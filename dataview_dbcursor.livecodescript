@@ -43,6 +43,11 @@ setProp dvCursor pCursorId
     end repeat
 
     put i into sColumnCount
+
+    lock screen
+    ResetView
+    RenderView
+    unlock screen
   end if
 end dvCursor
 
