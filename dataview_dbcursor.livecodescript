@@ -311,7 +311,7 @@ private command _setHilitedIds pIds
   local tId, tRow, tRows
 
   repeat for each item tId in pIds
-    put _rowOfId(tId) tRow
+    put _rowOfId(tId) into tRow
     if tRow is not empty then
       put tRow & "," after tRows
     end if
